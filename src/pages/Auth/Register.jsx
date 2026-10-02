@@ -10,10 +10,8 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // 🌐 Smart API URL: Localhost par localhost:5000 aur live hone par Render URL use karega
-  const API_URL = window.location.hostname === "localhost" 
-    ? "https://winarena-app-frontend.onrender.com" 
-    : "https://winarena-backend-1.onrender.com";
+  // 🌐 Naya Render backend URL set kar diya hai
+  const API_URL = "https://winarena-app-backend-gfxt.onrender.com";
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -34,7 +32,7 @@ export default function Register() {
     }
 
     try {
-      // 🟢 1. Backend database mein user sync karein taaki balance 0.00 rahe
+      // 🟢 1. Backend database mein user sync karein
       const res = await fetch(`${API_URL}/api/user/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -73,7 +71,6 @@ export default function Register() {
       localStorage.setItem("userEmail", email);
       localStorage.setItem("userMobile", mobile);
 
-      // 🔄 Event dispatch taaki Navbar ka balance turant update ho jaye
       window.dispatchEvent(new Event("storage"));
 
       alert("Account created successfully! 🚀");

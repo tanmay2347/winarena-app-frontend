@@ -6,6 +6,9 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // 🌐 Naya Render backend URL set kar diya hai
+  const API_URL = "https://winarena-app-backend-gfxt.onrender.com";
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -23,7 +26,7 @@ export default function Login() {
 
     try {
       // 🌐 Backend MongoDB Server ke sath sync karne ki koshish
-      const response = await fetch("https://winarena-app-frontend.onrender.com/api/user/profile?email=" + encodeURIComponent(email));
+      const response = await fetch(`${API_URL}/api/user/profile?email=` + encodeURIComponent(email));
       const data = await response.json();
 
       if (data.success && data.user) {

@@ -5,6 +5,8 @@ export default function WalletDetails() {
   const navigate = useNavigate();
   const [balance, setBalance] = useState(0);
   const [history, setHistory] = useState([]);
+  const API_URL = "https://winarena-app-backend-gfxt.onrender.com";
+  const userEmail = localStorage.getItem("userEmail") || "user@winarena.com";
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
@@ -18,10 +20,40 @@ export default function WalletDetails() {
     const savedBalance = localStorage.getItem("walletBalance");
     if (savedBalance) setBalance(parseFloat(savedBalance));
 
-    // 🟢 Clean history fallback for new users (No dummy data)
-    const savedHistory = JSON.parse(localStorage.getItem("walletHistory")) || [];
-    setHistory(savedHistory);
-  }, [navigate]);
+    // 🟢 Fetch Live Withdrawal & Transaction History from Backend Database
+    fetch(`${API_URL}/api/admin/withdrawals`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.withdrawals) {
+          // Sirf current user ki withdrawals filter karein ya saari dikhayein
+          const userWithdrawals = data.withdrawals
+            .filter((w) => w.userEmail === userEmail)
+            .map((w) => ({
+              type: `Withdrawal via ${w.method || 'UPI'}`,
+              amount: -w.withdrawalAmount,
+              time: new Date(w.timestamp).toLocaleString(),
+              txnId: w._id,
+              status: w.status || "Pending"
+            }));
+
+          // LocalStorage wali history bhi sath mein milayein (jaise Add Money ya P2P Transfer)
+          const localHistory = JSON.parse(localStorage.getItem(`walletHistory_${userEmail}`) || localStorage.getItem("walletHistory")) || [];
+          
+          // Dono ko combine karke set karein
+          const combined = [...userWithdrawals, ...localHistory];
+          setHistory(combined);
+        } else {
+          const savedHistory = JSON.parse(localStorage.getItem(`walletHistory_${userEmail}`) || localStorage.getItem("walletHistory")) || [];
+          setHistory(savedHistory);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch withdrawals from database:", err);
+        const savedHistory = JSON.parse(localStorage.getItem(`walletHistory_${userEmail}`) || localStorage.getItem("walletHistory")) || [];
+        setHistory(savedHistory);
+      });
+
+  }, [navigate, userEmail]);
 
   return (
     <div style={{ padding: "16px", color: "#fff", background: "#0f172a", minHeight: "100vh", paddingBottom: "90px", maxWidth: "600px", margin: "0 auto", boxSizing: "border-box" }}>
@@ -52,13 +84,14 @@ export default function WalletDetails() {
               <div key={idx} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <h4 style={{ margin: "0 0 2px 0", fontSize: "13px", color: "#fff", fontWeight: "800" }}>{item.type}</h4>
-                  <span style={{ fontSize: "9px", color: "#9ca3af" }}>{item.time}</span>
+                  <span style={{ fontSize: "9px", color: "#9ca3af", display: "block" }}>{item.time}</span>
+                  {item.txnId && <span style={{ fontSize: "8px", color: "#fbbf24", fontFamily: "monospace" }}>ID: {item.txnId}</span>}
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <strong style={{ fontSize: "14px", color: isPositive ? "#22c55e" : "#ef4444", fontWeight: "900" }}>
                     {isPositive ? `+₹${Math.abs(item.amount).toFixed(2)}` : `-₹${Math.abs(item.amount).toFixed(2)}`}
                   </strong>
-                  <span style={{ fontSize: "8px", display: "block", color: "#22c55e", background: "rgba(34,197,94,0.1)", padding: "1px 4px", borderRadius: "4px", marginTop: "2px" }}>{item.status || "Success"}</span>
+                  <span style={{ fontSize: "8px", display: "block", color: item.status === "Pending" ? "#fbbf24" : "#22c55e", background: item.status === "Pending" ? "rgba(251,191,36,0.1)" : "rgba(34,197,94,0.1)", padding: "1px 4px", borderRadius: "4px", marginTop: "2px" }}>{item.status || "Success"}</span>
                 </div>
               </div>
             );

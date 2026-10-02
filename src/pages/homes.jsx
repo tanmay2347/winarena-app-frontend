@@ -47,11 +47,15 @@ export default function Home() {
     }
   };
 
-  // Game Click Handler (Free Fire -> Open, Baaki sab -> Coming Soon Popup)
+  // Game Click Handler (Free Fire, Carrom, Ludo -> Open, Baaki sab -> Coming Soon Popup)
   const handleGameClick = (gameName) => {
     const formatted = gameName.toLowerCase().replace(/\s+/g, "");
     if (formatted.includes("freefire")) {
       handleNavigation("/games/freefire");
+    } else if (formatted.includes("carrom")) {
+      handleNavigation("/carrom");
+    } else if (formatted.includes("ludo")) {
+      handleNavigation("/ludo");
     } else {
       setSelectedGame(gameName);
       setShowAlert(true);
@@ -62,20 +66,20 @@ export default function Home() {
     <div className="winarena">
 
       {/* ================= HEADER ================= */}
-      <header className="header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px" }}>
-
-        {/* WIN ARENA STACKED LOGO */}
-        <Link to="/" className="logo" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ width: "32px", height: "32px", background: "linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)", borderRadius: "8px", display: "grid", placeItems: "center", fontWeight: "900", color: "#fbbf24", fontSize: "16px", border: "1px solid rgba(251,191,36,0.4)" }}>
-            W
-          </div>
+      <header className="header">
+        <Link to="/" className="logo">
+          <img 
+            src="/logo.png" 
+            alt="WinArena" 
+            style={{ height: "38px", objectFit: "contain", borderRadius: "6px" }} 
+          />
           <div style={{ display: "flex", flexDirection: "column", lineHeight: "1.1" }}>
-            <span style={{ fontSize: "11px", fontWeight: "900", color: "#fff", letterSpacing: "1px" }}>WIN</span>
-            <span style={{ fontSize: "13px", fontWeight: "900", color: "#fbbf24", letterSpacing: "1.5px" }}>ARENA</span>
+            <span style={{ fontSize: "15px", fontWeight: "1100", color: "#fff", fontFamily: "initial", letterSpacing: "1px" }}>WIN</span>
+            <span style={{ fontSize: "18px", fontWeight: "800", color: "#fbbf24", fontFamily: "monospace", letterSpacing: "1.5px" }}>ARENA</span>
           </div>
         </Link>
 
-        <div className="header-actions" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div className="header-actions">
           {/* WALLET WITH LIVE BALANCE */}
           <div 
             className="wallet" 
@@ -91,7 +95,7 @@ export default function Home() {
           </div>
 
           {/* NOTIFICATION */}
-          <button className="notification" style={{ background: "transparent", border: "none", cursor: "pointer", position: "relative", fontSize: "16px", color: "#fff" }}>
+          <button className="notification" style={{ background: "transparent", border: "none", cursor: "pointer", position: "relative", fontSize: "16px" }}>
             🔔
             <i style={{ position: "absolute", top: "2px", right: "2px", width: "6px", height: "6px", background: "#ef4444", borderRadius: "50%" }}></i>
           </button>
@@ -105,11 +109,9 @@ export default function Home() {
             👤
           </div>
         </div>
-
       </header>
 
-
-      {/* ================= HERO AUTO-SCROLLER (Dots removed) ================= */}
+      {/* ================= HERO AUTO-SCROLLER ================= */}
       <section className="hero" style={{ position: "relative", overflow: "hidden" }}>
         <img 
           src={banners[currentSlide]} 
@@ -159,8 +161,24 @@ export default function Home() {
             JOIN TOURNAMENT <span>→</span>
           </div>
         </div>
-      </section>
 
+        <div className="slider-dots" style={{ position: "relative", zIndex: 3, display: "flex", gap: "6px" }}>
+          {banners.map((_, index) => (
+            <span 
+              key={index} 
+              onClick={() => setCurrentSlide(index)}
+              style={{ 
+                cursor: "pointer", 
+                width: currentSlide === index ? "20px" : "8px", 
+                height: "8px", 
+                borderRadius: "4px", 
+                background: currentSlide === index ? "#fbbf24" : "rgba(255,255,255,0.4)",
+                transition: "all 0.3s ease"
+              }}
+            ></span>
+          ))}
+        </div>
+      </section>
 
       {/* ================= QUICK MENU ================= */}
       <section style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", padding: "0 16px", margin: "16px 0" }}>
@@ -170,7 +188,6 @@ export default function Home() {
         <div onClick={() => handleNavigation("/support")} style={{ displayContents: "contents" }}><QuickCard icon="🎧" title="Support" /></div>
       </section>
 
-
       {/* ================= GAMES ================= */}
       <SectionTitle title="CHOOSE YOUR GAME" onViewAll={() => handleNavigation("/games")} />
       <section className="games" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", padding: "0 16px" }}>
@@ -179,8 +196,7 @@ export default function Home() {
         <Game title="LUDO" subtitle="MULTIPLAYER" image="/ludo.png" slug="ludo" onGameClick={handleGameClick} />
       </section>
 
-
-      {/* ================= LIVE TOURNAMENTS (Sorted by time) ================= */}
+      {/* ================= LIVE TOURNAMENTS ================= */}
       <SectionTitle title="LIVE TOURNAMENTS" live onViewAll={() => handleNavigation("/tournaments")} />
       <section style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", padding: "0 16px" }}>
         {(
@@ -190,14 +206,13 @@ export default function Home() {
             { game: "LUDO", mode: "2 PLAYER", entry: "10", prize: "300", image: "/ludo.png", startTime: new Date("2026-06-07T16:00:00").getTime() }
           ]
         )
-        .sort((a, b) => (a.startTime || 0) - (b.startTime || 0))
+        .sort((a, b) => a.startTime - b.startTime)
         .map((tournament, index) => (
           <div key={index} onClick={() => handleNavigation("/tournaments")} style={{ displayContents: "contents" }}>
             <Tournament game={tournament.game} mode={tournament.mode} entry={tournament.entry} prize={tournament.prize} image={tournament.image} />
           </div>
         ))}
       </section>
-
 
       {/* ================= PROMO BANNER ================= */}
       <section style={{ position: "relative", borderRadius: "14px", overflow: "hidden", margin: "16px 16px", padding: "20px", height: "130px", display: "flex", alignItems: "center", border: "1px solid rgba(255,255,255,0.15)", cursor: "pointer" }} onClick={() => handleNavigation("/tournaments")}>
@@ -209,7 +224,6 @@ export default function Home() {
           <div style={{ background: "#fbbf24", color: "#000", fontSize: "10px", padding: "6px 12px", borderRadius: "6px", fontWeight: "800", display: "inline-block" }}>PLAY NOW →</div>
         </div>
       </section>
-
 
       {/* ================= WALLET SECTION ================= */}
       <SectionTitle title="YOUR WINARENA" onViewAll={() => handleNavigation("/wallet")} />
@@ -224,7 +238,6 @@ export default function Home() {
         </div>
       </section>
 
-
       {/* ================= COMING SOON MODAL ================= */}
       {showAlert && (
         <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0, 0, 0, 0.75)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000, backdropFilter: "blur(5px)" }}>
@@ -236,7 +249,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
 
       {/* ================= BOTTOM NAV ================= */}
       <nav className="bottom-nav">
@@ -251,8 +263,6 @@ export default function Home() {
   );
 }
 
-
-/* ================= QUICK CARD ================= */
 function QuickCard({ icon, title }) {
   return (
     <div style={{ cursor: "pointer", background: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "10px", padding: "10px 4px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
@@ -262,8 +272,6 @@ function QuickCard({ icon, title }) {
   );
 }
 
-
-/* ================= GAME ================= */
 function Game({ title, subtitle, image, slug, onGameClick }) {
   return (
     <div onClick={() => onGameClick(title)} className="game" style={{ cursor: "pointer", position: "relative", borderRadius: "14px", overflow: "hidden", height: "160px", display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: "12px", border: "1px solid rgba(255,255,255,0.15)" }}>
@@ -278,8 +286,6 @@ function Game({ title, subtitle, image, slug, onGameClick }) {
   );
 }
 
-
-/* ================= TOURNAMENT ================= */
 function Tournament({ game, mode, entry, prize, image }) {
   return (
     <div style={{ cursor: "pointer", position: "relative", borderRadius: "14px", overflow: "hidden", height: "175px", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "12px", border: "1px solid rgba(255,255,255,0.15)" }}>
@@ -307,8 +313,6 @@ function Tournament({ game, mode, entry, prize, image }) {
   );
 }
 
-
-/* ================= SECTION TITLE ================= */
 function SectionTitle({ title, live, onViewAll }) {
   return (
     <div className="section-title">

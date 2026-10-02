@@ -10,16 +10,15 @@ export default function Games() {
   const handleGameClick = (gameName) => {
     const formatted = gameName.toLowerCase().replace(/\s+/g, "");
     
-    // Agar Free Fire hai toh GameDetail page par bhej do
     if (formatted.includes("freefire")) {
       navigate(`/games/freefire`);
-    } 
-    // Agar Carrom hai toh seedha Carrom game arena par bhej do
-    else if (formatted.includes("carrom")) {
+    } else if (formatted.includes("carrom")) {
       navigate(`/carrom`);
-    } 
-    // Baaki games ke liye "Coming Soon" popup dikhao
-    else {
+    } else if (formatted.includes("ludo")) {
+      navigate(`/ludo`);
+    } else if (formatted.includes("snake") || formatted.includes("ladder")) {
+      navigate(`/snake`); // 👈 Snake & Ladder route direct open hoga!
+    } else {
       setSelectedGame(gameName);
       setShowAlert(true);
     }
@@ -48,8 +47,7 @@ export default function Games() {
             border: "2px solid #7c3aed", 
             overflow: "hidden", 
             cursor: "pointer",
-            boxShadow: "0 4px 20px rgba(124, 58, 237, 0.3)",
-            transition: "transform 0.2s"
+            boxShadow: "0 4px 20px rgba(124, 58, 237, 0.3)"
           }}
         >
           <div style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -66,7 +64,7 @@ export default function Games() {
           </div>
         </div>
 
-        {/* CARROM CARD (Active / Live Now) */}
+        {/* CARROM CARD (Active) */}
         <div 
           onClick={() => handleGameClick("Carrom")}
           style={{ 
@@ -92,28 +90,54 @@ export default function Games() {
           </div>
         </div>
 
-        {/* LUDO CARD (Coming Soon) */}
+        {/* LUDO CARD (Active) */}
         <div 
           onClick={() => handleGameClick("Ludo")}
           style={{ 
             background: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)", 
             borderRadius: "16px", 
-            border: "1px solid rgba(255,255,255,0.1)", 
+            border: "2px solid #38bdf8", 
             overflow: "hidden", 
             cursor: "pointer",
-            opacity: 0.85
+            boxShadow: "0 4px 20px rgba(56, 189, 248, 0.3)"
           }}
         >
           <div style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <span style={{ background: "#f59e0b", color: "#000", fontSize: "9px", fontWeight: "900", padding: "3px 8px", borderRadius: "4px" }}>
-                ⏳ COMING SOON
+              <span style={{ background: "#38bdf8", color: "#000", fontSize: "9px", fontWeight: "900", padding: "3px 8px", borderRadius: "4px" }}>
+                ● ACTIVE
               </span>
               <h2 style={{ fontSize: "18px", margin: "8px 0 4px 0", fontWeight: "900", color: "#fff" }}>LUDO</h2>
-              <p style={{ margin: 0, fontSize: "11px", color: "#9ca3af" }}>Multiplayer Dice Game</p>
+              <p style={{ margin: 0, fontSize: "11px", color: "#9ca3af" }}>Multiplayer Dice & Matchmaking Game</p>
             </div>
-            <button style={{ background: "rgba(255,255,255,0.1)", color: "#9ca3af", border: "none", padding: "8px 16px", borderRadius: "8px", fontWeight: "800", fontSize: "12px", cursor: "pointer" }}>
-              SOON
+            <button style={{ background: "#38bdf8", color: "#000", border: "none", padding: "8px 16px", borderRadius: "8px", fontWeight: "800", fontSize: "12px", cursor: "pointer" }}>
+              PLAY 🎲
+            </button>
+          </div>
+        </div>
+
+        {/* SNAKE & LADDER CARD (Active) */}
+        <div 
+          onClick={() => handleGameClick("Snake & Ladder")}
+          style={{ 
+            background: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)", 
+            borderRadius: "16px", 
+            border: "2px solid #22c55e", 
+            overflow: "hidden", 
+            cursor: "pointer",
+            boxShadow: "0 4px 20px rgba(34, 197, 94, 0.3)"
+          }}
+        >
+          <div style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <span style={{ background: "#22c55e", color: "#fff", fontSize: "9px", fontWeight: "900", padding: "3px 8px", borderRadius: "4px" }}>
+                ● ACTIVE
+              </span>
+              <h2 style={{ fontSize: "18px", margin: "8px 0 4px 0", fontWeight: "900", color: "#fff" }}>SNAKE & LADDER</h2>
+              <p style={{ margin: 0, fontSize: "11px", color: "#9ca3af" }}>Classic Board Dice Match</p>
+            </div>
+            <button style={{ background: "#22c55e", color: "#000", border: "none", padding: "8px 16px", borderRadius: "8px", fontWeight: "800", fontSize: "12px", cursor: "pointer" }}>
+              PLAY 🐍
             </button>
           </div>
         </div>

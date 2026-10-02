@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   Zap,
@@ -6,15 +7,13 @@ import {
 
 export default function Hero() {
   const navigate = useNavigate();
+
   return (
     <section className="hero">
-
       <div className="hero-bg-glow" />
 
       <div className="hero-content">
-
         <div className="hero-text">
-
           <div className="hero-badge">
             <Zap size={15} />
             LIVE TOURNAMENTS
@@ -33,11 +32,13 @@ export default function Hero() {
             tournament platform.
           </p>
 
-          <button className="primary-btn">
+          <button 
+            className="primary-btn" 
+            onClick={() => navigate('/tournaments')}
+          >
             JOIN TOURNAMENT
             <ArrowRight size={19} />
           </button>
-
         </div>
 
         <div className="hero-art">
@@ -45,7 +46,6 @@ export default function Hero() {
             <Trophy size={100} />
           </div>
         </div>
-
       </div>
 
       <div className="hero-dots">
@@ -54,7 +54,6 @@ export default function Hero() {
         <span />
         <span />
       </div>
-
     </section>
   );
 }

@@ -47,13 +47,15 @@ export default function Home() {
     }
   };
 
-  // Game Click Handler (Free Fire -> Open, Carrom -> Open, Others -> Coming Soon Popup)
+  // Game Click Handler (Free Fire, Carrom, Ludo -> Open, Others -> Coming Soon Popup)
   const handleGameClick = (gameName) => {
     const formatted = gameName.toLowerCase().replace(/\s+/g, "");
     if (formatted.includes("freefire")) {
       handleNavigation("/games/freefire");
     } else if (formatted.includes("carrom")) {
       handleNavigation("/carrom");
+    } else if (formatted.includes("ludo")) {
+      handleNavigation("/ludo"); // 👈 Ludo ab direct open hoga!
     } else {
       setSelectedGame(gameName);
       setShowAlert(true);
@@ -64,27 +66,21 @@ export default function Home() {
     <div className="winarena">
 
       {/* ================= HEADER ================= */}
-
       <header className="header">
-
         <Link to="/" className="logo">
           <img 
             src="/logo.png" 
             alt="WinArena" 
             style={{ height: "38px", objectFit: "contain", borderRadius: "6px" }} 
-
           />
           <div style={{ display: "flex", flexDirection: "column", lineHeight: "1.1" }}>
             <span style={{ fontSize: "15px", fontWeight: "1100", color: "#fff", fontFamily: "initial", letterSpacing: "1px" }}>WIN</span>
-            <span style={{ fontSize: "18px", fontWeight: "800", color: "#fbbf24", fontFamily:  "monospace", letterSpacing: "1.5px" }}>ARENA</span>
+            <span style={{ fontSize: "18px", fontWeight: "800", color: "#fbbf24", fontFamily: "monospace", letterSpacing: "1.5px" }}>ARENA</span>
           </div>
         </Link>
 
-
         <div className="header-actions">
-
           {/* WALLET WITH LIVE BALANCE */}
-
           <div 
             className="wallet" 
             onClick={() => handleNavigation("/wallet")}
@@ -98,17 +94,13 @@ export default function Home() {
             </span>
           </div>
 
-
           {/* NOTIFICATION */}
-
           <button className="notification" style={{ background: "transparent", border: "none", cursor: "pointer", position: "relative", fontSize: "16px" }}>
             🔔
             <i style={{ position: "absolute", top: "2px", right: "2px", width: "6px", height: "6px", background: "#ef4444", borderRadius: "50%" }}></i>
           </button>
 
-
           {/* PROFILE */}
-
           <div
             onClick={() => handleNavigation("/profile")}
             className="profile"
@@ -116,16 +108,11 @@ export default function Home() {
           >
             👤
           </div>
-
         </div>
-
       </header>
 
-
       {/* ================= HERO AUTO-SCROLLER ================= */}
-
       <section className="hero" style={{ position: "relative", overflow: "hidden" }}>
-
         <img 
           src={banners[currentSlide]} 
           alt="Banner" 
@@ -152,51 +139,28 @@ export default function Home() {
         }}></div>
 
         <div className="hero-content" style={{ position: "relative", zIndex: 3, textAlign: "right", alignItems: "flex-end", width: "100%", marginLeft: "auto", marginRight: "0", display: "flex", flexDirection: "column" }}>
-
           <span className="live-label" style={{ textAlign: "right" }}>
             ● LIVE TOURNAMENTS
           </span>
 
-
           <h1 style={{ textAlign: "right" }}>
-
-            PLAY.
-
-            <br />
-
-            <span>
-              COMPETE.
-            </span>
-
-            <br />
-
-            <b>
-              WIN BIG!
-            </b>
-
+            PLAY.<br />
+            <span>COMPETE.</span><br />
+            <b>WIN BIG!</b>
           </h1>
-
 
           <p style={{ textAlign: "right", maxWidth: "280px", margin: "0 0 12px 0", fontSize: "12px", color: "#cbd5e1", alignSelf: "flex-end" }}>
             India's next generation gaming tournament platform.
           </p>
-
 
           <div
             onClick={() => handleNavigation("/tournaments")}
             className="play-button"
             style={{ cursor: "pointer", display: "inline-flex", alignSelf: "flex-end" }}
           >
-            JOIN TOURNAMENT
-
-            <span>
-              →
-            </span>
-
+            JOIN TOURNAMENT <span>→</span>
           </div>
-
         </div>
-
 
         <div className="slider-dots" style={{ position: "relative", zIndex: 3, display: "flex", gap: "6px" }}>
           {banners.map((_, index) => (
@@ -214,81 +178,27 @@ export default function Home() {
             ></span>
           ))}
         </div>
-
       </section>
 
-
-      {/* ================= QUICK MENU (1 LINE - 4 BOXES) ================= */}
-
+      {/* ================= QUICK MENU ================= */}
       <section style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", padding: "0 16px", margin: "16px 0" }}>
-
-        <div onClick={() => handleNavigation("/games")} style={{ displayContents: "contents" }}>
-          <QuickCard icon="🎮" title="Games" />
-        </div>
-
-        <div onClick={() => handleNavigation("/tournaments")} style={{ displayContents: "contents" }}>
-          <QuickCard icon="🏆" title="Tournaments" />
-        </div>
-
-        <div onClick={() => handleNavigation("/leaderboard")} style={{ displayContents: "contents" }}>
-          <QuickCard icon="📊" title="Leaderboard" />
-        </div>
-
-        <div onClick={() => handleNavigation("/support")} style={{ displayContents: "contents" }}>
-          <QuickCard icon="🎧" title="Support" />
-        </div>
-
+        <div onClick={() => handleNavigation("/games")} style={{ displayContents: "contents" }}><QuickCard icon="🎮" title="Games" /></div>
+        <div onClick={() => handleNavigation("/tournaments")} style={{ displayContents: "contents" }}><QuickCard icon="🏆" title="Tournaments" /></div>
+        <div onClick={() => handleNavigation("/leaderboard")} style={{ displayContents: "contents" }}><QuickCard icon="📊" title="Leaderboard" /></div>
+        <div onClick={() => handleNavigation("/support")} style={{ displayContents: "contents" }}><QuickCard icon="🎧" title="Support" /></div>
       </section>
-
 
       {/* ================= GAMES ================= */}
-
-      <SectionTitle
-        title="CHOOSE YOUR GAME"
-        onViewAll={() => handleNavigation("/games")}
-      />
-
-
+      <SectionTitle title="CHOOSE YOUR GAME" onViewAll={() => handleNavigation("/games")} />
       <section className="games" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", padding: "0 16px" }}>
-
-        <Game
-          title="FREE FIRE"
-          subtitle="BATTLE ROYALE"
-          image="/freefire.png"
-          slug="freefire"
-          onGameClick={handleGameClick}
-        />
-
-        <Game
-          title="CARROM"
-          subtitle="REAL TIME"
-          image="/carrom.png"
-          slug="carrom"
-          onGameClick={handleGameClick}
-        />
-
-        <Game
-          title="LUDO"
-          subtitle="MULTIPLAYER"
-          image="/ludo.png"
-          slug="ludo"
-          onGameClick={handleGameClick}
-        />
-
+        <Game title="FREE FIRE" subtitle="BATTLE ROYALE" image="/freefire.png" slug="freefire" onGameClick={handleGameClick} />
+        <Game title="CARROM" subtitle="REAL TIME" image="/carrom.png" slug="carrom" onGameClick={handleGameClick} />
+        <Game title="LUDO" subtitle="MULTIPLAYER" image="/ludo.png" slug="ludo" onGameClick={handleGameClick} />
       </section>
 
-
       {/* ================= LIVE TOURNAMENTS ================= */}
-
-      <SectionTitle
-        title="LIVE TOURNAMENTS"
-        live
-        onViewAll={() => handleNavigation("/tournaments")}
-      />
-
-
+      <SectionTitle title="LIVE TOURNAMENTS" live onViewAll={() => handleNavigation("/tournaments")} />
       <section style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", padding: "0 16px" }}>
-
         {(
           JSON.parse(localStorage.getItem("adminTournaments")) || [
             { game: "FREE FIRE", mode: "SOLO", entry: "10", prize: "500", image: "/freefire.png", startTime: new Date("2026-06-07T15:00:00").getTime() },
@@ -299,253 +209,72 @@ export default function Home() {
         .sort((a, b) => a.startTime - b.startTime)
         .map((tournament, index) => (
           <div key={index} onClick={() => handleNavigation("/tournaments")} style={{ displayContents: "contents" }}>
-            <Tournament
-              game={tournament.game}
-              mode={tournament.mode}
-              entry={tournament.entry}
-              prize={tournament.prize}
-              image={tournament.image}
-            />
+            <Tournament game={tournament.game} mode={tournament.mode} entry={tournament.entry} prize={tournament.prize} image={tournament.image} />
           </div>
         ))}
-
       </section>
-
 
       {/* ================= PROMO BANNER ================= */}
-
-      <section style={{ 
-        position: "relative", 
-        borderRadius: "14px", 
-        overflow: "hidden", 
-        margin: "16px 16px", 
-        padding: "20px", 
-        height: "130px", 
-        display: "flex", 
-        alignItems: "center", 
-        border: "1px solid rgba(255,255,255,0.15)",
-        cursor: "pointer"
-      }} onClick={() => handleNavigation("/tournaments")}>
-
-        <img 
-          src="/promo-banner.png" 
-          alt="Promo" 
-          style={{ 
-            position: "absolute", 
-            top: 0, 
-            left: 0, 
-            width: "100%", 
-            height: "100%", 
-            objectFit: "cover", 
-            zIndex: 1 
-          }} 
-        />
-
-        <div style={{ 
-          position: "absolute", 
-          top: 0, 
-          left: 0, 
-          width: "100%", 
-          height: "100%", 
-          background: "linear-gradient(90deg, rgba(15,23,42,0.92) 50%, rgba(15,23,42,0.4) 100%)", 
-          zIndex: 2 
-        }}></div>
-
+      <section style={{ position: "relative", borderRadius: "14px", overflow: "hidden", margin: "16px 16px", padding: "20px", height: "130px", display: "flex", alignItems: "center", border: "1px solid rgba(255,255,255,0.15)", cursor: "pointer" }} onClick={() => handleNavigation("/tournaments")}>
+        <img src="/promo-banner.png" alt="Promo" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 1 }} />
+        <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "linear-gradient(90deg, rgba(15,23,42,0.92) 50%, rgba(15,23,42,0.4) 100%)", zIndex: 2 }}></div>
         <div style={{ position: "relative", zIndex: 3, width: "100%" }}>
-          <small style={{ color: "#fbbf24", fontSize: "10px", fontWeight: "700", display: "block", marginBottom: "4px" }}>
-            WIN BIG EVERYDAY
-          </small>
-
-          <h2 style={{ color: "#fff", fontSize: "16px", fontWeight: "900", lineHeight: "1.2", margin: "0 0 10px 0" }}>
-            PLAY MORE.<br />WIN MORE.
-          </h2>
-
-          <div style={{ background: "#fbbf24", color: "#000", fontSize: "10px", padding: "6px 12px", borderRadius: "6px", fontWeight: "800", display: "inline-block" }}>
-            PLAY NOW →
-          </div>
+          <small style={{ color: "#fbbf24", fontSize: "10px", fontWeight: "700", display: "block", marginBottom: "4px" }}>WIN BIG EVERYDAY</small>
+          <h2 style={{ color: "#fff", fontSize: "16px", fontWeight: "900", lineHeight: "1.2", margin: "0 0 10px 0" }}>PLAY MORE.<br />WIN MORE.</h2>
+          <div style={{ background: "#fbbf24", color: "#000", fontSize: "10px", padding: "6px 12px", borderRadius: "6px", fontWeight: "800", display: "inline-block" }}>PLAY NOW →</div>
         </div>
-
       </section>
-
 
       {/* ================= WALLET SECTION ================= */}
-
-      <SectionTitle
-        title="YOUR WINARENA"
-        onViewAll={() => handleNavigation("/wallet")}
-      />
-
-
+      <SectionTitle title="YOUR WINARENA" onViewAll={() => handleNavigation("/wallet")} />
       <section className="wallet-section">
-
-        <div 
-          className="wallet-card"
-          onClick={() => handleNavigation("/wallet")}
-          style={{ cursor: "pointer" }}
-        >
-
-          <div className="wallet-big-icon">
-            ₹
-          </div>
-
-          <div>
-            <small>Total Balance</small>
-            <h2>₹{walletBalance}</h2>
-          </div>
-
+        <div className="wallet-card" onClick={() => handleNavigation("/wallet")} style={{ cursor: "pointer" }}>
+          <div className="wallet-big-icon">₹</div>
+          <div><small>Total Balance</small><h2>₹{walletBalance}</h2></div>
         </div>
-
-        <div 
-          className="wallet-card"
-          onClick={() => handleNavigation("/tournaments")}
-          style={{ cursor: "pointer" }}
-        >
-
-          <div className="trophy-icon">
-            🏆
-          </div>
-
-          <div>
-            <small>Total Tournaments</small>
-            <h2>4,847+</h2>
-          </div>
-
+        <div className="wallet-card" onClick={() => handleNavigation("/tournaments")} style={{ cursor: "pointer" }}>
+          <div className="trophy-icon">🏆</div>
+          <div><small>Total Tournaments</small><h2>4,847+</h2></div>
         </div>
-
       </section>
 
-
-      {/* ================= ANIMATED COMING SOON MODAL POPUP ================= */}
+      {/* ================= COMING SOON MODAL ================= */}
       {showAlert && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          background: "rgba(0, 0, 0, 0.75)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 1000,
-          backdropFilter: "blur(5px)"
-        }}>
-          <div style={{
-            background: "linear-gradient(135deg, #311042 0%, #0f172a 100%)",
-            border: "2px solid #fbbf24",
-            padding: "24px",
-            borderRadius: "20px",
-            textAlign: "center",
-            maxWidth: "320px",
-            width: "85%",
-            boxShadow: "0 10px 30px rgba(251, 191, 36, 0.3)"
-          }}>
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0, 0, 0, 0.75)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000, backdropFilter: "blur(5px)" }}>
+          <div style={{ background: "linear-gradient(135deg, #311042 0%, #0f172a 100%)", border: "2px solid #fbbf24", padding: "24px", borderRadius: "20px", textAlign: "center", maxWidth: "320px", width: "85%", boxShadow: "0 10px 30px rgba(251, 191, 36, 0.3)" }}>
             <div style={{ fontSize: "40px", marginBottom: "10px" }}>🚀</div>
-            <h2 style={{ color: "#fbbf24", fontSize: "18px", margin: "0 0 8px 0", fontWeight: "900" }}>
-              {selectedGame} IS COMING SOON!
-            </h2>
-            <p style={{ color: "#cbd5e1", fontSize: "12px", margin: "0 0 20px 0", lineHeight: "1.4" }}>
-              We are working hard to launch tournaments for <strong>{selectedGame}</strong> very soon. Stay tuned!
-            </p>
-            <button 
-              onClick={() => setShowAlert(false)}
-              style={{
-                background: "#fbbf24",
-                color: "#000",
-                border: "none",
-                padding: "10px 24px",
-                borderRadius: "10px",
-                fontWeight: "900",
-                fontSize: "12px",
-                cursor: "pointer",
-                width: "100%"
-              }}
-            >
-              GOT IT 👍
-            </button>
+            <h2 style={{ color: "#fbbf24", fontSize: "18px", margin: "0 0 8px 0", fontWeight: "900" }}>{selectedGame} IS COMING SOON!</h2>
+            <p style={{ color: "#cbd5e1", fontSize: "12px", margin: "0 0 20px 0", lineHeight: "1.4" }}>We are working hard to launch tournaments for <strong>{selectedGame}</strong> very soon. Stay tuned!</p>
+            <button onClick={() => setShowAlert(false)} style={{ background: "#fbbf24", color: "#000", border: "none", padding: "10px 24px", borderRadius: "10px", fontWeight: "900", fontSize: "12px", cursor: "pointer", width: "100%" }}>GOT IT 👍</button>
           </div>
         </div>
       )}
 
-
       {/* ================= BOTTOM NAV ================= */}
-
       <nav className="bottom-nav">
-
-        <Link to="/" className="nav-item active">
-          <span>⌂</span>
-          <small>Home</small>
-        </Link>
-
-        <div onClick={() => handleNavigation("/games")} className="nav-item" style={{ cursor: "pointer" }}>
-          <span>🎮</span>
-          <small>Games</small>
-        </div>
-
-        <div onClick={() => handleNavigation("/tournaments")} className="nav-item" style={{ cursor: "pointer" }}>
-          <span>🏆</span>
-          <small>Tournaments</small>
-        </div>
-
-        <div onClick={() => handleNavigation("/wallet")} className="nav-item" style={{ cursor: "pointer" }}>
-          <span>₹</span>
-          <small>Wallet</small>
-        </div>
-
-        <div onClick={() => handleNavigation("/profile")} className="nav-item" style={{ cursor: "pointer" }}>
-          <span>👤</span>
-          <small>Profile</small>
-        </div>
-
+        <Link to="/" className="nav-item active"><span>⌂</span><small>Home</small></Link>
+        <div onClick={() => handleNavigation("/games")} className="nav-item" style={{ cursor: "pointer" }}><span>🎮</span><small>Games</small></div>
+        <div onClick={() => handleNavigation("/tournaments")} className="nav-item" style={{ cursor: "pointer" }}><span>🏆</span><small>Tournaments</small></div>
+        <div onClick={() => handleNavigation("/wallet")} className="nav-item" style={{ cursor: "pointer" }}><span>₹</span><small>Wallet</small></div>
+        <div onClick={() => handleNavigation("/profile")} className="nav-item" style={{ cursor: "pointer" }}><span>👤</span><small>Profile</small></div>
       </nav>
 
     </div>
   );
 }
 
-
-/* ================= QUICK CARD ================= */
 function QuickCard({ icon, title }) {
   return (
-    <div style={{ 
-      cursor: "pointer", 
-      background: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)", 
-      border: "1px solid rgba(255,255,255,0.15)", 
-      borderRadius: "10px", 
-      padding: "10px 4px", 
-      display: "flex", 
-      flexDirection: "column", 
-      alignItems: "center", 
-      textAlign: "center" 
-    }}>
+    <div style={{ cursor: "pointer", background: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "10px", padding: "10px 4px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
       <div style={{ fontSize: "18px", marginBottom: "4px" }}>{icon}</div>
-      <span style={{ fontSize: "9px", color: "#fff", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
-        {title}
-      </span>
+      <span style={{ fontSize: "9px", color: "#fff", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{title}</span>
     </div>
   );
 }
 
-
-/* ================= GAME ================= */
 function Game({ title, subtitle, image, slug, onGameClick }) {
   return (
-    <div 
-      onClick={() => onGameClick(title)}
-      className="game" 
-      style={{ 
-        cursor: "pointer", 
-        position: "relative", 
-        borderRadius: "14px", 
-        overflow: "hidden", 
-        height: "160px", 
-        display: "flex", 
-        flexDirection: "column", 
-        justifyContent: "flex-end", 
-        padding: "12px",
-        border: "1px solid rgba(255,255,255,0.15)"
-      }}
-    >
+    <div onClick={() => onGameClick(title)} className="game" style={{ cursor: "pointer", position: "relative", borderRadius: "14px", overflow: "hidden", height: "160px", display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: "12px", border: "1px solid rgba(255,255,255,0.15)" }}>
       <img src={image} alt={title} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 1 }} />
       <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(15,23,42,0.95) 100%)", zIndex: 2 }}></div>
       <div className="game-info" style={{ position: "relative", zIndex: 3, width: "100%", textAlign: "left" }}>
@@ -557,8 +286,6 @@ function Game({ title, subtitle, image, slug, onGameClick }) {
   );
 }
 
-
-/* ================= TOURNAMENT ================= */
 function Tournament({ game, mode, entry, prize, image }) {
   return (
     <div style={{ cursor: "pointer", position: "relative", borderRadius: "14px", overflow: "hidden", height: "175px", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "12px", border: "1px solid rgba(255,255,255,0.15)" }}>
@@ -586,8 +313,6 @@ function Tournament({ game, mode, entry, prize, image }) {
   );
 }
 
-
-/* ================= SECTION TITLE ================= */
 function SectionTitle({ title, live, onViewAll }) {
   return (
     <div className="section-title">

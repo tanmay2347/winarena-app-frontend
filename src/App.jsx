@@ -14,7 +14,9 @@ import WalletDetails from "./pages/WalletDetails";
 import ArenaWallet from "./pages/ArenaWallet"; 
 import Leaderboard from "./pages/Leaderboard";
 import Support from "./pages/Support"; 
-import CarromGame from "./pages/CarromGame"; // 👈 Yahan CarromGame import kar liya
+import CarromGame from "./pages/CarromGame"; 
+import Ludo from "./pages/Ludo";
+import Snake from "./pages/Snake"; // 👈 Snake & Ladder import kar liya
 
 // 🛡️ Protected Route Component to secure pages from unauthenticated access
 const ProtectedRoute = ({ children }) => {
@@ -49,8 +51,10 @@ function App() {
       <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       
-      {/* Carrom Route */}
+      {/* Game Routes */}
       <Route path="/carrom" element={<ProtectedRoute><CarromGame /></ProtectedRoute>} />
+      <Route path="/ludo" element={<ProtectedRoute><Ludo /></ProtectedRoute>} />
+      <Route path="/snake" element={<ProtectedRoute><Snake /></ProtectedRoute>} /> {/* 👈 Snake Route */}
 
       {/* Catch-all redirect to login */}
       <Route path="*" element={<Navigate to="/login" replace />} />

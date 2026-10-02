@@ -197,7 +197,7 @@ export default function Admin() {
   return (
     <div style={{ padding: "20px", color: "#fff", background: "#0f172a", minHeight: "100vh", maxWidth: "650px", margin: "0 auto", paddingBottom: "60px" }}>
       
-      {/* TOP NAVIGATION BAR */}
+      {/* TOP NAVIGATION BAR WITH SAFE BACK BUTTON */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
         <button 
           onClick={() => navigate("/")} 

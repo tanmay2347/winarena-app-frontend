@@ -7,7 +7,7 @@ export default function GameDetail() {
   const [tournaments, setTournaments] = useState([]);
   const [timeLeft, setTimeLeft] = useState({});
 
-  const API_URL = "https://winarena-backend-1.onrender.com";
+  const API_URL = "https://winarena-app-backend-gfxt.onrender.com";
   const userEmail = localStorage.getItem("userEmail") || "";
   const userName = localStorage.getItem("userName") || "";
 

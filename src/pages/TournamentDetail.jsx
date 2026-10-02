@@ -11,7 +11,7 @@ export default function TournamentDetail() {
   const [gameUsername, setGameUsername] = useState("");
 
   // 🟢 Live Backend URL Constant
-  const API_URL = "https://winarena-backend-1.onrender.com";
+  const API_URL = "https://winarena-app-backend-gfxt.onrender.com";
   const userEmail = localStorage.getItem("userEmail") || "user@winarena.com";
   const userName = localStorage.getItem("userName") || "Player";
 

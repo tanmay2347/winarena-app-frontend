@@ -34,7 +34,7 @@ export default function Profile() {
         const fetchUserProfile = async () => {
             try {
                 const storedEmail = localStorage.getItem('userEmail') || "paras@gmail.com";
-                const response = await axios.get(`https://winarena-backend-1.onrender.com/api/user/profile?email=${storedEmail}`);
+                const response = await axios.get(`https://winarena-app-backend-gfxt.onrender.com/api/user/profile?email=${storedEmail}`);
                 
                 // LocalStorage se latest wallet balance check karein
                 const localBalance = parseFloat(localStorage.getItem("walletBalance") || "0");
@@ -69,7 +69,7 @@ export default function Profile() {
     const handleSaveProfile = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('https://winarena-backend-1.onrender.com/api/user/register', {
+            await axios.post('https://winarena-app-backend-gfxt.onrender.com/api/user/register', {
                 name: tempName,
                 email: tempEmail,
                 mobile: tempMobile

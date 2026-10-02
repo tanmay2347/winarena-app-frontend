@@ -27,7 +27,7 @@ export default function Admin() {
   const [roomData, setRoomData] = useState({});
 
   // 🟢 Live Backend URL Constant
-  const API_URL = "https://winarena-backend-1.onrender.com";
+  const API_URL = "https://winarena-app-backend-gfxt.onrender.com";
 
   useEffect(() => {
     fetchTournaments();

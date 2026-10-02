@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "https://winarena-backend-1.onrender.com";
+const SOCKET_URL = "https://winarena-app-backend-gfxt.onrender.com";
 
 export default function Snake() {
   const navigate = useNavigate();

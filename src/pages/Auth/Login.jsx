@@ -5,6 +5,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // 🟢 Toggle state for password visibility
 
   // 🌐 Naya Render backend URL set kar diya hai
   const API_URL = "https://winarena-app-backend-gfxt.onrender.com";
@@ -35,7 +36,7 @@ export default function Login() {
         localStorage.setItem("isLoggedIn", "true");
         localStorage.removeItem("isAdmin");
 
-        // 💰 Backend / MongoDB se mila hua real wallet balance save karna
+        // 💰 Backend / MongoDB से mila hua real wallet balance save karna
         localStorage.setItem("walletBalance", foundUser.walletBalance || "0.00");
         localStorage.setItem("user", JSON.stringify(foundUser));
         localStorage.setItem("userName", foundUser.name);
@@ -115,14 +116,22 @@ export default function Login() {
 
         <div>
           <label style={{ display: "block", fontSize: "11px", color: "#9ca3af", marginBottom: "4px", fontWeight: "700" }}>Password</label>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            placeholder="Enter password"
-            required
-            style={{ width: "100%", padding: "12px", borderRadius: "8px", background: "#1e1b4b", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", boxSizing: "border-box" }}
-          />
+          <div style={{ position: "relative" }}>
+            <input 
+              type={showPassword ? "text" : "password"} 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              placeholder="Enter password"
+              required
+              style={{ width: "100%", padding: "12px 40px 12px 12px", borderRadius: "8px", background: "#1e1b4b", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", boxSizing: "border-box" }}
+            />
+            <span 
+              onClick={() => setShowPassword(!showPassword)}
+              style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", fontSize: "16px", color: "#9ca3af" }}
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </span>
+          </div>
         </div>
 
         <button 

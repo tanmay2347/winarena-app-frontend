@@ -9,6 +9,10 @@ export default function Register() {
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  
+  // 🟢 Toggle states for password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // 🌐 Naya Render backend URL set kar diya hai
   const API_URL = "https://winarena-app-backend-gfxt.onrender.com";
@@ -137,24 +141,42 @@ export default function Register() {
 
           <div className="input-group">
             <label>Password</label>
-            <input
-              type="password"
-              placeholder="Create password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div style={{ position: "relative" }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Create password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={{ width: "100%", paddingRight: "40px", boxSizing: "border-box" }}
+              />
+              <span 
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", fontSize: "16px", color: "#9ca3af" }}
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </span>
+            </div>
           </div>
 
           <div className="input-group">
             <label>Confirm Password</label>
-            <input
-              type="password"
-              placeholder="Confirm password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
+            <div style={{ position: "relative" }}>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                style={{ width: "100%", paddingRight: "40px", boxSizing: "border-box" }}
+              />
+              <span 
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", fontSize: "16px", color: "#9ca3af" }}
+              >
+                {showConfirmPassword ? "🙈" : "👁️"}
+              </span>
+            </div>
           </div>
 
           <button type="submit" className="login-button">

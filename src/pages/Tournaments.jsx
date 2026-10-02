@@ -6,7 +6,7 @@ export default function Tournaments() {
   const [joinedTournaments, setJoinedTournaments] = useState([]);
   
   // 🟢 Live Backend URL Constant
-  const API_URL = "https://winarena-app-backend-gfxt.onrender.com";
+  const API_URL = "https://winarena-backend-1.onrender.com";
 
   // Function to fetch and filter joined tournaments
   const fetchJoinedTournaments = () => {

@@ -7,7 +7,7 @@ export default function Leaderboard() {
   const [topUsers, setTopUsers] = useState([]);
 
   // 🟢 Live Backend URL Constant
-  const API_URL = "https://winarena-app-backend-gfxt.onrender.com";
+  const API_URL = "https://winarena-backend-1.onrender.com";
 
   useEffect(() => {
     const fetchRealUsersLeaderboard = async () => {

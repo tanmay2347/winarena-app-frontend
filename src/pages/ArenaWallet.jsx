@@ -33,7 +33,7 @@ export default function ArenaWallet() {
   const [bankDetails, setBankDetails] = useState({ accNo: "", ifsc: "", name: "" });
   const [paytmNumber, setPaytmNumber] = useState("");
 
-  const API_URL = "https://winarena-backend-1.onrender.com";
+  const API_URL = "https://winarena-app-backend-gfxt.onrender.com";
   const userEmail = localStorage.getItem("userEmail") || "user@winarena.com";
   const userMobile = localStorage.getItem("userMobile") || "9999999999";
 
@@ -266,7 +266,6 @@ export default function ArenaWallet() {
     }
 
     try {
-      // 1. Backend se Cashfree order session create karein
       const res = await fetch(`${API_URL}/api/create-cashfree-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -284,7 +283,6 @@ export default function ArenaWallet() {
         return;
       }
 
-      // 2. Cashfree SDK Initialize (Sandbox mode)
       const cashfree = window.Cashfree({
         mode: "sandbox" 
       });
@@ -299,7 +297,6 @@ export default function ArenaWallet() {
           alert("Payment failed: " + result.error.message);
         }
         if(result.paymentDetails){
-          // Payment successful hone par wallet balance update karein
           const addRes = await fetch(`${API_URL}/api/wallet/add`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -347,7 +344,7 @@ export default function ArenaWallet() {
 
     const usableBalance = balance - lockAmount;
     if (amt > usableBalance) {
-      alert(`⚠️ Withdrawal Failed!\n\nYou must maintain a minimum locked balance of ₹${lockAmount}. Your usable balance is ₹${Math.max(0, usableBalance)}.`);
+      alert(`⚠️️ Withdrawal Failed!\n\nYou must maintain a minimum locked balance of ₹${lockAmount}. Your usable balance is ₹${Math.max(0, usableBalance)}.`);
       return;
     }
 

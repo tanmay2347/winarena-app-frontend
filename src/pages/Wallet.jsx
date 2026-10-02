@@ -17,7 +17,7 @@ export default function Wallet() {
   const [popupData, setPopupData] = useState(null);
   const userEmail = localStorage.getItem("userEmail") || "user@winarena.com";
   const userMobile = localStorage.getItem("userMobile") || "9999999999";
-  const API_URL = "https://winarena-backend-1.onrender.com";
+  const API_URL = "https://winarena-app-backend-gfxt.onrender.com";
 
   // 🟢 Load Cashfree SDK script on mount
   useEffect(() => {

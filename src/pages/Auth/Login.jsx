@@ -23,7 +23,7 @@ export default function Login() {
 
     try {
       // 🌐 Backend MongoDB Server ke sath sync karne ki koshish
-      const response = await fetch("http://localhost:5000/api/user/profile?email=" + encodeURIComponent(email));
+      const response = await fetch("https://winarena-app-frontend.onrender.com/api/user/profile?email=" + encodeURIComponent(email));
       const data = await response.json();
 
       if (data.success && data.user) {

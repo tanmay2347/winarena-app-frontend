@@ -12,7 +12,7 @@ export default function Register() {
 
   // 🌐 Smart API URL: Localhost par localhost:5000 aur live hone par Render URL use karega
   const API_URL = window.location.hostname === "localhost" 
-    ? "http://localhost:5000" 
+    ? "https://winarena-app-frontend.onrender.com" 
     : "https://winarena-backend-1.onrender.com";
 
   const handleRegister = async (e) => {

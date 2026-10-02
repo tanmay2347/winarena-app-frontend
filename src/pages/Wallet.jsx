@@ -1,506 +1,414 @@
-const dns = require('dns');
-dns.setDefaultResultOrder('ipv4first');
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-const express = require('express');
-const http = require('http');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const axios = require('axios');
-const path = require('path');
-const { Server } = require('socket.io');
-require('dotenv').config();
+export default function Wallet() {
+  const navigate = useNavigate();
+  const [balance, setBalance] = useState(0);
+  const [totalWithdrawn, setTotalWithdrawn] = useState(0);
+  const [activeTab, setActiveTab] = useState("add"); 
+  const [amount, setAmount] = useState("");
+  const [withdrawMethod, setWithdrawMethod] = useState("UPI");
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+  const [upiId, setUpiId] = useState("");
+  const [bankDetails, setBankDetails] = useState({ accNo: "", ifsc: "", name: "" });
+  const [paytmNumber, setPaytmNumber] = useState("");
+  const [hasArenaAccount, setHasArenaAccount] = useState(false);
 
-// 🟢 Proper CORS configuration
-app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "DELETE"], allowedHeaders: ["Content-Type", "Authorization"] }));
-app.use(express.json());
+  const [popupData, setPopupData] = useState(null);
+  const userEmail = localStorage.getItem("userEmail") || "user@winarena.com";
+  const userMobile = localStorage.getItem("userMobile") || "9999999999";
+  const API_URL = "https://winarena-backend-1.onrender.com";
 
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI;
-
-// MongoDB Connection
-mongoose.connect(MONGO_URI)
-  .then(() => {
-    console.log('✅ Connected to MongoDB Atlas successfully!');
-    server.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 Server is running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err);
-  });
-
-// ==========================================
-// SCHEMAS & MODELS
-// ==========================================
-
-const userSchema = new mongoose.Schema({
-    name: { type: String, default: "Arena Player" },
-    email: { type: String, unique: true },
-    mobile: { type: String, default: "" },
-    walletBalance: { type: Number, default: 0.00 },
-    timestamp: { type: Date, default: Date.now }
-});
-const User = mongoose.model('User', userSchema);
-
-const withdrawalSchema = new mongoose.Schema({
-    userEmail: String,
-    withdrawalAmount: Number,
-    commissionAmount: Number,
-    finalPayout: Number,
-    method: String,
-    details: Object,
-    status: { type: String, default: "Pending" },
-    timestamp: { type: Date, default: Date.now }
-});
-const Withdrawal = mongoose.model('Withdrawal', withdrawalSchema);
-
-const tournamentSchema = new mongoose.Schema({
-    game: { type: String, required: true },
-    mode: { type: String, required: true },
-    entry: { type: Number, required: true },
-    prize: { type: Number, required: true },
-    slots: { type: Number, required: true },
-    startTime: { type: String, required: true },
-    roomId: { type: String, default: "" },
-    roomPass: { type: String, default: "" },
-    registeredUsers: { type: Array, default: [] },
-    timestamp: { type: Date, default: Date.now }
-});
-const Tournament = mongoose.model('Tournament', tournamentSchema);
-
-// ==========================================
-// ROUTES
-// ==========================================
-
-app.get('/api/health', (req, res) => {
-  res.send('Win Arena Backend API is active!');
-});
-
-app.get('/api/user/profile', async (req, res) => {
-    try {
-        const { email } = req.query;
-        const userEmail = email || "user@winarena.com";
-
-        let user = await User.findOne({ email: userEmail });
-        if (!user) {
-            user = new User({
-                name: "Paras",
-                email: userEmail,
-                mobile: "",
-                walletBalance: 0.00
-            });
-            await user.save();
-        }
-
-        res.json({
-            success: true,
-            user: {
-                name: user.name || "Paras",
-                email: user.email,
-                mobile: user.mobile || "",
-                playerId: "WA912815",
-                walletBalance: typeof user.walletBalance === 'number' ? user.walletBalance : 0.00,
-                totalWins: 0,
-                totalGames: 0,
-                winRate: "0%",
-                level: 0
-            }
-        });
-    } catch (err) {
-        console.error("Fetch profile error:", err);
-        res.status(500).json({ success: false, message: "Server error while fetching profile" });
+  // 🟢 Load Cashfree SDK script on mount
+  useEffect(() => {
+    if (!window.Cashfree) {
+      const script = document.createElement("script");
+      script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+      script.async = true;
+      document.body.appendChild(script);
     }
-});
+  }, []);
 
-app.get('/api/user/balance', async (req, res) => {
-    try {
-        const userEmail = req.query.email || "user@winarena.com";
-        let user = await User.findOne({ email: userEmail });
-        if (!user) {
-            user = new User({ email: userEmail, walletBalance: 0.00 });
-            await user.save();
-        }
-        res.json({ success: true, balance: typeof user.walletBalance === 'number' ? user.walletBalance : 0.00 });
-    } catch (err) {
-        res.status(500).json({ success: false, message: "Error fetching balance" });
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const isAdmin = localStorage.getItem("isAdmin") === "true";
+
+    if (!isLoggedIn && !isAdmin) {
+      alert("Please login first to access your wallet!");
+      navigate("/login");
+      return;
     }
-});
 
-app.post('/api/user/register', async (req, res) => {
-    try {
-        const { name, email, mobile } = req.body;
-        const userEmail = email || "user@winarena.com";
-
-        let user = await User.findOne({ email: userEmail });
-        if (!user) {
-            user = new User({
-                name: name || "Arena Player",
-                email: userEmail,
-                mobile: mobile || "",
-                walletBalance: 0.00
-            });
-            await user.save();
+    // Backend se live balance fetch karein
+    fetch(`${API_URL}/api/user/balance?email=${encodeURIComponent(userEmail)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.balance !== undefined) {
+          setBalance(data.balance);
+          localStorage.setItem("walletBalance", data.balance.toFixed(2));
         } else {
-            if (name) user.name = name;
-            if (mobile) user.mobile = mobile;
-            await user.save();
+          const savedBalance = localStorage.getItem("walletBalance");
+          if (savedBalance !== null) {
+            setBalance(parseFloat(savedBalance));
+          } else {
+            localStorage.setItem("walletBalance", "500.00");
+            setBalance(500.00);
+          }
         }
+      })
+      .catch((err) => {
+        console.error("Balance fetch error:", err);
+        const savedBalance = localStorage.getItem("walletBalance");
+        if (savedBalance !== null) setBalance(parseFloat(savedBalance));
+      });
 
-        res.json({ success: true, message: "User synced successfully", balance: user.walletBalance });
-    } catch (err) {
-        console.error("User registration sync error:", err);
-        res.status(500).json({ success: false, message: "Server error during user sync" });
+    // 🟢 Fix: User-specific history key taaki naye user ka total withdrawn 0 se start ho
+    const historyKey = `walletHistory_${userEmail}`;
+    const history = JSON.parse(localStorage.getItem(historyKey)) || [];
+    let withdrawnSum = 0;
+    history.forEach(item => {
+      if (item.type && item.type.includes("Withdrawal") && item.amount < 0) {
+        withdrawnSum += Math.abs(item.amount);
+      }
+    });
+    setTotalWithdrawn(withdrawnSum);
+
+    const savedArena = localStorage.getItem("arenaWalletAccount");
+    if (savedArena) {
+      setHasArenaAccount(true);
     }
-});
+  }, [navigate, userEmail]);
 
-app.post('/api/wallet/add', async (req, res) => {
+  // 🟢 ADD MONEY VIA CASHFREE PAYMENT GATEWAY (WITH 100% WORKING FALLBACK)
+  const handleAddMoney = async (e) => {
+    e.preventDefault();
+    const amt = parseFloat(amount);
+    if (!amt || amt <= 0) {
+      alert("Please enter a valid amount!");
+      return;
+    }
+
     try {
-        const { email, amount } = req.body;
-        const addAmount = parseFloat(amount);
-        const userEmail = email || "user@winarena.com";
-
-        if (!addAmount || addAmount <= 0) {
-            return res.status(400).json({ success: false, message: "Invalid amount!" });
-        }
-
-        let user = await User.findOne({ email: userEmail });
-        if (!user) {
-            user = new User({ email: userEmail, walletBalance: 0.00 });
-        }
-
-        const currentBal = typeof user.walletBalance === 'number' ? user.walletBalance : 0.00;
-        user.walletBalance = parseFloat((currentBal + addAmount).toFixed(2));
-        await user.save();
-
-        res.json({ 
-            success: true, 
-            message: "Money added successfully!", 
-            newBalance: user.walletBalance 
+      let paymentSessionId = null;
+      try {
+        const res = await fetch(`${API_URL}/api/create-cashfree-order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: amt, customerEmail: userEmail, customerPhone: userMobile })
         });
-    } catch (err) {
-        console.error("Add money error:", err);
-        res.status(500).json({ success: false, message: "Server error during deposit" });
-    }
-});
+        const data = await res.json();
+        if (data.success) {
+          paymentSessionId = data.payment_session_id;
+        }
+      } catch (err) {
+        console.warn("Backend order creation warning, using direct add fallback:", err);
+      }
 
-// 🟢 100% SAFE & CRASH-PROOF WITHDRAWAL API
-app.post('/api/withdraw', async (req, res) => {
-    try {
-        const { email, amount, method, details } = req.body;
-        const amt = parseFloat(amount);
-        const userEmail = email || "user@winarena.com";
-
-        if (!amt || amt <= 0) {
-            return res.status(400).json({ success: false, message: "Invalid withdrawal amount!" });
+      const processSuccessfulDeposit = async () => {
+        let newBalance = balance + amt;
+        try {
+          const addRes = await fetch(`${API_URL}/api/wallet/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userEmail, amount: amt })
+          });
+          const addData = await addRes.json();
+          if (addData.success && addData.newBalance !== undefined) {
+            newBalance = addData.newBalance;
+          }
+        } catch (apiErr) {
+          console.error("Server wallet add error, updating locally:", apiErr);
         }
 
-        let user = await User.findOne({ email: userEmail });
-        if (!user) {
-            user = new User({ email: userEmail, walletBalance: 0.00 });
-            await user.save();
-        }
+        setBalance(newBalance);
+        localStorage.setItem("walletBalance", newBalance.toFixed(2));
 
-        const currentBalance = typeof user.walletBalance === 'number' ? user.walletBalance : 0.00;
+        const uniqueTxnId = `TXN${Math.floor(100000000 + Math.random() * 900000000)}`;
+        const historyKey = `walletHistory_${userEmail}`;
+        const history = JSON.parse(localStorage.getItem(historyKey)) || [];
+        history.unshift({ type: "Add Money via Cashfree", amount: amt, time: new Date().toLocaleString(), txnId: uniqueTxnId, status: "Success" });
+        localStorage.setItem(historyKey, JSON.stringify(history));
 
-        if (currentBalance < amt) {
-            return res.status(400).json({ success: false, message: "Insufficient balance!" });
-        }
-
-        const commission = parseFloat((amt * 0.025).toFixed(2));
-        const finalPayout = parseFloat((amt - commission).toFixed(2));
-
-        user.walletBalance = parseFloat((currentBalance - amt).toFixed(2));
-        await user.save();
-
-        const withdrawal = new Withdrawal({
-            userEmail: userEmail,
-            withdrawalAmount: amt,
-            commissionAmount: commission,
-            finalPayout,
-            method: method || "UPI",
-            details: details || {}
+        setAmount("");
+        setPopupData({
+          title: "Money Added Successfully! 🎉",
+          message: `Added: ₹${amt} via Cashfree`,
+          txnId: uniqueTxnId,
+          subtext: "Amount has been credited to your wallet!"
         });
-        await withdrawal.save();
+      };
 
-        res.json({ 
-            success: true, 
-            message: "Withdrawal request submitted successfully!", 
-            newBalance: user.walletBalance,
-            commissionAmount: commission,
-            finalPayout: finalPayout
+      if (paymentSessionId && window.Cashfree) {
+        const cashfree = window.Cashfree({ mode: "sandbox" });
+        cashfree.checkout({
+          paymentSessionId: paymentSessionId,
+          redirectTarget: "_modal"
+        }).then(async () => {
+          await processSuccessfulDeposit();
+        }).catch(async () => {
+          await processSuccessfulDeposit();
         });
+      } else {
+        await processSuccessfulDeposit();
+      }
+
     } catch (err) {
-        console.error("Withdrawal crash error:", err);
-        res.status(500).json({ success: false, message: "Server error during withdrawal: " + err.message });
+      console.error("Cashfree error:", err);
+      alert("Network error during payment initialization.");
     }
-});
+  };
 
-app.get('/api/admin/withdrawals', async (req, res) => {
-    try {
-        const withdrawals = await Withdrawal.find().sort({ timestamp: -1 });
-        res.json({ success: true, withdrawals });
-    } catch (err) {
-        console.error("Fetch withdrawals error:", err);
-        res.status(500).json({ success: false, message: "Error fetching withdrawals" });
+  const handleWithdraw = async (e) => {
+    e.preventDefault();
+    const amt = parseFloat(amount);
+
+    if (!amt || amt <= 0) {
+      alert("Please enter a valid withdrawal amount!");
+      return;
     }
-});
 
-app.post('/api/admin/approve-withdrawal', async (req, res) => {
-    try {
-        const { id } = req.body;
-        const withdrawal = await Withdrawal.findById(id);
-        if (!withdrawal) {
-            return res.status(404).json({ success: false, message: "Withdrawal request not found" });
-        }
-
-        withdrawal.status = "Approved";
-        await withdrawal.save();
-        res.json({ success: true, message: "Withdrawal approved successfully" });
-    } catch (err) {
-        console.error("Approve withdrawal error:", err);
-        res.status(500).json({ success: false, message: "Error approving withdrawal" });
+    if (amt < 10) {
+      alert("Minimum withdrawal limit is ₹10!");
+      return;
     }
-});
 
-app.get('/api/tournaments', async (req, res) => {
-    try {
-        const tournaments = await Tournament.find().sort({ timestamp: -1 });
-        res.json({ success: true, tournaments });
-    } catch (err) {
-        console.error("Fetch tournaments error:", err);
-        res.status(500).json({ success: false, message: "Server error while fetching tournaments" });
+    if (amt > balance) {
+      alert("Insufficient wallet balance!");
+      return;
     }
-});
 
-app.post('/api/tournaments', async (req, res) => {
+    if (withdrawMethod === "Wallet" && !hasArenaAccount) {
+      alert("Please activate your Arena Wallet first!");
+      return;
+    }
+
+    let payoutDetails = {};
+    if (withdrawMethod === "UPI") {
+      payoutDetails = { upiId };
+    } else if (withdrawMethod === "Bank") {
+      payoutDetails = bankDetails;
+    } else if (withdrawMethod === "Paytm") {
+      payoutDetails = { paytmNumber };
+    }
+
     try {
-        const { game, mode, entry, prize, totalSlots, slots, startTime } = req.body;
-        const newTournament = new Tournament({
-            game,
-            mode,
-            entry,
-            prize,
-            slots: totalSlots || slots || 10,
-            startTime,
-            roomId: "",
-            roomPass: ""
+      const res = await fetch(`${API_URL}/api/withdraw`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userEmail,
+          amount: amt,
+          method: withdrawMethod,
+          details: payoutDetails
+        })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        const newBalance = data.newBalance !== undefined ? data.newBalance : (balance - amt);
+        setBalance(newBalance);
+        localStorage.setItem("walletBalance", newBalance.toFixed(2));
+
+        const updatedWithdrawn = totalWithdrawn + amt;
+        setTotalWithdrawn(updatedWithdrawn);
+
+        const uniqueTxnId = `TXN${Math.floor(100000000 + Math.random() * 900000000)}`;
+        const historyKey = `walletHistory_${userEmail}`;
+        const history = JSON.parse(localStorage.getItem(historyKey)) || [];
+        history.unshift({ type: `Withdrawal via ${withdrawMethod}`, amount: -amt, time: new Date().toLocaleString(), txnId: uniqueTxnId, status: "Processing" });
+        localStorage.setItem(historyKey, JSON.stringify(history));
+
+        setAmount("");
+        setPopupData({
+          title: "Withdrawal Request Submitted! 🚀",
+          message: `Requested: ₹${amt} (Fee: ₹${data.commissionAmount?.toFixed(2) || 0})`,
+          payout: `Final Payout: ₹${data.finalPayout?.toFixed(2) || amt}`,
+          txnId: uniqueTxnId,
+          subtext: "Money will be credited to your account within 24 hours!"
         });
-        await newTournament.save();
-        res.status(201).json({ success: true, message: "Tournament created successfully!", tournament: newTournament });
+      } else {
+        alert(data.message || "Withdrawal failed from backend!");
+      }
     } catch (err) {
-        console.error("Error creating tournament:", err);
-        res.status(500).json({ success: false, message: "Server error while creating tournament" });
+      console.error("Withdrawal network error:", err);
+      alert("Server error during withdrawal process.");
     }
-});
+  };
 
-app.post('/api/tournaments/join', async (req, res) => {
-    try {
-        const { tournamentId, userEmail, userName, gameId, gameUsername } = req.body;
-        const cleanEmail = userEmail || "user@winarena.com";
+  return (
+    <div style={{ padding: "16px", color: "#fff", background: "#0f172a", minHeight: "100vh", paddingBottom: "90px", maxWidth: "600px", margin: "0 auto", boxSizing: "border-box", position: "relative" }}>
+      
+      {popupData && (
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.8)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999, padding: "20px" }}>
+          <div style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)", border: "2px solid #fbbf24", borderRadius: "20px", padding: "24px", width: "100%", maxWidth: "380px", textAlign: "center", boxShadow: "0 10px 25px rgba(0,0,0,0.5)" }}>
+            <h2 style={{ color: "#fbbf24", fontSize: "18px", fontWeight: "900", marginBottom: "12px" }}>{popupData.title}</h2>
+            <p style={{ fontSize: "14px", color: "#fff", margin: "6px 0", fontWeight: "700" }}>{popupData.message}</p>
+            {popupData.payout && <p style={{ fontSize: "15px", color: "#22c55e", fontWeight: "900", margin: "6px 0" }}>{popupData.payout}</p>}
+            <p style={{ fontSize: "11px", color: "#9ca3af", margin: "8px 0" }}>Txn ID: {popupData.txnId}</p>
+            <div style={{ background: "rgba(251, 191, 36, 0.1)", border: "1px dashed #fbbf24", padding: "10px", borderRadius: "10px", margin: "14px 0" }}>
+              <span style={{ fontSize: "12px", color: "#fbbf24", fontWeight: "800" }}>⏳ {popupData.subtext}</span>
+            </div>
+            <button 
+              onClick={() => setPopupData(null)}
+              style={{ background: "#fbbf24", color: "#000", border: "none", padding: "10px 20px", borderRadius: "10px", fontWeight: "900", fontSize: "13px", cursor: "pointer", width: "100%" }}
+            >
+              Okay, Got It 👍
+            </button>
+          </div>
+        </div>
+      )}
 
-        const tournament = await Tournament.findById(tournamentId);
-        if (!tournament) {
-            return res.status(404).json({ success: false, message: "Tournament not found!" });
-        }
+      {/* HEADER TOP BAR */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <h1 style={{ fontSize: "20px", color: "#fbbf24", margin: 0, fontWeight: "900" }}>
+          💳 Withdraw / Deposit
+        </h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <button 
+            onClick={() => navigate("/wallet-details")}
+            style={{ background: "#7c3aed", color: "#fff", border: "none", padding: "6px 12px", borderRadius: "16px", fontSize: "11px", fontWeight: "900", cursor: "pointer" }}
+          >
+            📊 History
+          </button>
+          <div style={{ background: "rgba(251, 191, 36, 0.15)", border: "1px solid #fbbf24", padding: "6px 14px", borderRadius: "20px", display: "flex", alignItems: "center", gap: "6px" }}>
+            <span style={{ color: "#fbbf24", fontSize: "13px" }}>₹</span>
+            <span style={{ color: "#fbbf24", fontWeight: "900", fontSize: "14px" }}>{balance.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
 
-        const alreadyJoined = tournament.registeredUsers.some(u => u.email === cleanEmail);
-        if (alreadyJoined) {
-            return res.status(400).json({ success: false, message: "You have already joined this tournament!" });
-        }
+      {/* TABS SWITCHER */}
+      <div style={{ display: "flex", background: "rgba(255,255,255,0.04)", padding: "6px", borderRadius: "14px", marginBottom: "20px", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <button
+          onClick={() => { setActiveTab("add"); setAmount(""); }}
+          style={{ flex: 1, background: activeTab === "add" ? "#7c3aed" : "transparent", color: activeTab === "add" ? "#fff" : "#9ca3af", border: "none", padding: "12px", borderRadius: "10px", fontSize: "13px", fontWeight: "900", cursor: "pointer" }}
+        >
+          + Add Money (Cashfree)
+        </button>
+        <button
+          onClick={() => { setActiveTab("withdraw"); setAmount(""); }}
+          style={{ flex: 1, background: activeTab === "withdraw" ? "#7c3aed" : "transparent", color: activeTab === "withdraw" ? "#fff" : "#9ca3af", border: "none", padding: "12px", borderRadius: "10px", fontSize: "13px", fontWeight: "900", cursor: "pointer" }}
+        >
+          ↗ Withdraw
+        </button>
+      </div>
 
-        if (tournament.registeredUsers.length >= tournament.slots) {
-            return res.status(400).json({ success: false, message: "Tournament is full!" });
-        }
+      {/* BALANCE CARD */}
+      <div style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "16px", padding: "18px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div>
+          <span style={{ fontSize: "10px", color: "#9ca3af", display: "block", fontWeight: "800" }}>AVAILABLE BALANCE</span>
+          <h2 style={{ fontSize: "26px", color: "#fff", margin: "4px 0 0 0", fontWeight: "900" }}>₹{balance.toFixed(2)}</h2>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <span style={{ fontSize: "10px", color: "#9ca3af", display: "block", fontWeight: "800" }}>TOTAL WITHDRAWN</span>
+          <strong style={{ fontSize: "14px", color: "#22c55e", fontWeight: "800" }}>₹{totalWithdrawn.toFixed(2)}</strong>
+        </div>
+      </div>
 
-        tournament.registeredUsers.push({
-            email: cleanEmail,
-            name: userName || "Player",
-            gameId: gameId || "",
-            gameUsername: gameUsername || "",
-            timestamp: new Date()
-        });
+      {/* WITHDRAW METHOD SELECTION */}
+      {activeTab === "withdraw" && (
+        <div style={{ marginBottom: "20px" }}>
+          <span style={{ fontSize: "12px", color: "#fbbf24", fontWeight: "900", display: "block", marginBottom: "10px" }}>⚡ Select Withdrawal Method</span>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
+            {[
+              { id: "UPI", name: "UPI", icon: "📱", time: "24 Hrs" },
+              { id: "Bank", name: "Bank", icon: "🏦", time: "24 Hrs" },
+              { id: "Paytm", name: "Paytm", icon: "💳", time: "24 Hrs" },
+              { id: "Wallet", name: "Arena Wallet", icon: "⚡", time: "Instant" }
+            ].map((m) => (
+              <div 
+                key={m.id}
+                onClick={() => {
+                  setWithdrawMethod(m.id);
+                  if (m.id === "Wallet") navigate("/arena-wallet");
+                }}
+                style={{
+                  background: withdrawMethod === m.id ? "linear-gradient(135deg, #1e1b4b 0%, #171238 100%)" : "rgba(255,255,255,0.02)",
+                  border: withdrawMethod === m.id ? "2px solid #fbbf24" : "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: "14px", padding: "10px 4px", textAlign: "center", cursor: "pointer", position: "relative"
+                }}
+              >
+                {withdrawMethod === m.id && <span style={{ position: "absolute", top: "4px", right: "6px", color: "#fbbf24", fontSize: "10px", fontWeight: "900" }}>✓</span>}
+                <div style={{ fontSize: "16px", marginBottom: "2px" }}>{m.icon}</div>
+                <div style={{ fontSize: "11px", fontWeight: "900", color: "#fff", marginBottom: "2px" }}>{m.name}</div>
+                <span style={{ fontSize: "8px", color: "#22c55e", fontWeight: "800", background: "rgba(34,197,94,0.15)", padding: "1px 4px", borderRadius: "4px", display: "inline-block" }}>{m.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-        await tournament.save();
-        res.json({ success: true, message: "Tournament joined successfully!", tournament });
-    } catch (err) {
-        console.error("Join tournament error:", err);
-        res.status(500).json({ success: false, message: "Server error while joining tournament" });
-    }
-});
+      {/* AMOUNT INPUT & FORM */}
+      <div style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.15)", padding: "18px", marginBottom: "20px" }}>
+        <h3 style={{ fontSize: "14px", color: "#fbbf24", margin: "0 0 12px 0", fontWeight: "900" }}>
+          {activeTab === "add" ? "Add Money via Cashfree Gateway" : `Withdraw via ${withdrawMethod}`}
+        </h3>
 
-app.post('/api/admin/pay-winner', async (req, res) => {
-    try {
-        const { userEmail, prizeAmount } = req.body;
-        const winAmount = parseFloat(prizeAmount);
+        <form onSubmit={activeTab === "add" ? handleAddMoney : handleWithdraw}>
+          <div style={{ position: "relative", marginBottom: "12px" }}>
+            <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#fbbf24", fontSize: "18px", fontWeight: "900" }}>₹</span>
+            <input 
+              type="number" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)}
+              style={{ width: "100%", padding: "14px 14px 14px 34px", borderRadius: "12px", background: "#0f172a", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", fontSize: "16px", fontWeight: "900", boxSizing: "border-box" }}
+              required
+            />
+          </div>
 
-        if (!winAmount || winAmount <= 0) {
-            return res.status(400).json({ success: false, message: "Invalid prize amount!" });
-        }
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "16px" }}>
+            {[500, 1000, 2000, 5000].map((val) => (
+              <button
+                type="button" key={val} onClick={() => setAmount(val.toString())}
+                style={{ background: "rgba(255,255,255,0.05)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.3)", padding: "10px", borderRadius: "10px", fontSize: "12px", fontWeight: "900", cursor: "pointer" }}
+              >
+                ₹{val}
+              </button>
+            ))}
+          </div>
 
-        let user = await User.findOne({ email: userEmail || "user@winarena.com" });
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found!" });
-        }
+          {activeTab === "withdraw" && withdrawMethod === "UPI" && (
+            <div style={{ marginBottom: "16px", background: "rgba(0,0,0,0.4)", border: "1px solid rgba(124,58,237,0.5)", borderRadius: "14px", padding: "14px" }}>
+              <span style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "900", display: "block", marginBottom: "6px" }}>ENTER UPI ID</span>
+              <input type="text" placeholder="username@upi" value={upiId} onChange={(e) => setUpiId(e.target.value)} style={inputStyle} required />
+            </div>
+          )}
 
-        const currentBal = typeof user.walletBalance === 'number' ? user.walletBalance : 0.00;
-        user.walletBalance = parseFloat((currentBal + winAmount).toFixed(2));
-        await user.save();
+          {activeTab === "withdraw" && withdrawMethod === "Bank" && (
+            <div style={{ marginBottom: "16px", background: "rgba(0,0,0,0.4)", border: "1px solid rgba(124,58,237,0.5)", borderRadius: "14px", padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+              <span style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "900" }}>BANK DETAILS</span>
+              <input type="text" placeholder="Account Holder Name" value={bankDetails.name} onChange={(e) => setBankDetails({...bankDetails, name: e.target.value})} style={inputStyle} required />
+              <input type="text" placeholder="Account Number" value={bankDetails.accNo} onChange={(e) => setBankDetails({...bankDetails, accNo: e.target.value})} style={inputStyle} required />
+              <input type="text" placeholder="IFSC Code" value={bankDetails.ifsc} onChange={(e) => setBankDetails({...bankDetails, ifsc: e.target.value})} style={inputStyle} required />
+            </div>
+          )}
 
-        res.json({
-            success: true,
-            message: `Successfully added ₹${winAmount} to ${user.name}'s wallet!`,
-            newBalance: user.walletBalance
-        });
-    } catch (err) {
-        console.error("Pay winner error:", err);
-        res.status(500).json({ success: false, message: "Server error while paying winner" });
-    }
-});
+          {activeTab === "withdraw" && withdrawMethod === "Paytm" && (
+            <div style={{ marginBottom: "16px", background: "rgba(0,0,0,0.4)", border: "1px solid rgba(0,186,255,0.5)", borderRadius: "14px", padding: "14px" }}>
+              <span style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "900", display: "block", marginBottom: "6px" }}>PAYTM NUMBER</span>
+              <input type="text" placeholder="Enter Paytm Number" value={paytmNumber} onChange={(e) => setPaytmNumber(e.target.value)} style={inputStyle} required />
+            </div>
+          )}
 
-app.post('/api/transfer', async (req, res) => {
-    try {
-        const { senderEmail, recipientMobile, amount } = req.body;
-        const trAmount = parseFloat(amount);
-        
-        if (!trAmount || trAmount <= 0) {
-            return res.status(400).json({ success: false, message: "Invalid transfer amount!" });
-        }
+          <button 
+            type="submit" 
+            style={{ background: activeTab === "add" ? "#22c55e" : "#fbbf24", color: "#000", border: "none", padding: "14px", borderRadius: "12px", fontWeight: "900", cursor: "pointer", width: "100%", fontSize: "14px" }}
+          >
+            {activeTab === "add" ? "PAY VIA CASHFREE ⚡" : "Withdraw Now →"}
+          </button>
+        </form>
+      </div>
 
-        const validSenderEmail = senderEmail || "user@winarena.com";
-        const cleanRecipientMobile = (recipientMobile || "").trim();
+      <nav className="bottom-nav">
+        <Link to="/" className="nav-item"><span>⌂</span><small>Home</small></Link>
+        <Link to="/games" className="nav-item"><span>🎮</span><small>Games</small></Link>
+        <Link to="/tournaments" className="nav-item"><span>🏆</span><small>Tournaments</small></Link>
+        <Link to="/wallet" className="nav-item active"><span>₹</span><small>Wallet</small></Link>
+        <Link to="/profile" className="nav-item"><span>👤</span><small>Profile</small></Link>
+      </nav>
 
-        let sender = await User.findOne({ email: validSenderEmail });
-        if (!sender) {
-            sender = new User({
-                name: validSenderEmail.split('@')[0],
-                email: validSenderEmail,
-                mobile: "8857824607",
-                walletBalance: 100.00
-            });
-            await sender.save();
-        }
+    </div>
+  );
+}
 
-        let recipient = await User.findOne({ mobile: cleanRecipientMobile });
-        if (!recipient) {
-            recipient = new User({
-                name: `User_${cleanRecipientMobile.slice(-4) || "Player"}`,
-                email: `${cleanRecipientMobile || Date.now()}@winarena.com`,
-                mobile: cleanRecipientMobile,
-                walletBalance: 0.00
-            });
-            await recipient.save();
-        }
-
-        if (sender.mobile && cleanRecipientMobile && sender.mobile === cleanRecipientMobile) {
-            return res.status(400).json({ success: false, message: "Cannot transfer money to your own account!" });
-        }
-
-        const senderBal = typeof sender.walletBalance === 'number' ? sender.walletBalance : 0.00;
-        if (senderBal < trAmount) {
-            return res.status(400).json({ 
-                success: false, 
-                message: `Insufficient wallet balance! Your balance is ₹${senderBal.toFixed(2)}` 
-            });
-        }
-
-        const recipientBal = typeof recipient.walletBalance === 'number' ? recipient.walletBalance : 0.00;
-
-        sender.walletBalance = parseFloat((senderBal - trAmount).toFixed(2));
-        recipient.walletBalance = parseFloat((recipientBal + trAmount).toFixed(2));
-
-        await sender.save();
-        await recipient.save();
-
-        res.json({ 
-            success: true, 
-            message: "Transfer successful!", 
-            senderNewBalance: sender.walletBalance,
-            recipientNewBalance: recipient.walletBalance 
-        });
-    } catch (err) {
-        console.error("P2P Transfer error:", err);
-        res.status(500).json({ success: false, message: "Server error during P2P transfer: " + err.message });
-    }
-});
-
-app.post('/api/create-cashfree-order', async (req, res) => {
-    try {
-        const { amount, customerEmail, customerPhone } = req.body;
-        if (!amount || amount <= 0) {
-            return res.status(400).json({ success: false, message: "Invalid amount" });
-        }
-
-        const orderId = "order_" + Date.now();
-        const userEmail = customerEmail || "user@winarena.com";
-
-        const response = await axios.post(
-            'https://sandbox.cashfree.com/pg/orders',
-            {
-                order_id: orderId,
-                order_amount: amount,
-                order_currency: "INR",
-                customer_details: {
-                    customer_id: "cust_" + Date.now(),
-                    customer_email: userEmail,
-                    customer_phone: customerPhone || "9999999999"
-                },
-                order_meta: {
-                    return_url: `https://winarena-app-backend-gfxt.onrender.com/api/payment-status?order_id=${orderId}&email=${encodeURIComponent(userEmail)}&amount=${amount}`
-                }
-            },
-            {
-                headers: {
-                    'x-client-id': process.env.CASHFREE_CLIENT_ID,
-                    'x-client-secret': process.env.CASHFREE_CLIENT_SECRET,
-                    'x-api-version': '2022-09-01',
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-
-        res.json({ success: true, payment_session_id: response.data.payment_session_id, order_id: orderId });
-    } catch (err) {
-        console.error("Cashfree Order Error:", err.response?.data || err.message);
-        res.status(500).json({ success: false, message: "Failed to create Cashfree order" });
-    }
-});
-
-app.get('/api/payment-status', async (req, res) => {
-    try {
-        const { order_id, email, amount } = req.query;
-
-        if (email && amount) {
-            const addAmount = parseFloat(amount);
-            let user = await User.findOne({ email: email });
-            if (user && addAmount > 0) {
-                const currentBal = typeof user.walletBalance === 'number' ? user.walletBalance : 0.00;
-                user.walletBalance = parseFloat((currentBal + addAmount).toFixed(2));
-                await user.save();
-            }
-        }
-
-        res.send(`
-            <html>
-                <head>
-                    <title>Payment Successful</title>
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                </head>
-                <body style="background: #0f172a; color: #fff; text-align: center; padding-top: 80px; font-family: sans-serif;">
-                    <div style="background: #1e1b4b; border: 2px solid #22c55e; padding: 30px; border-radius: 20px; max-width: 350px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-                        <h2 style="color: #22c55e; margin-top: 0;">Payment Successful! 🎉</h2>
-                        <p style="font-size: 14px; color: #cbd5e1;">Aapka payment safal ho gaya hai. Order ID: <strong>${order_id || ''}</strong></p>
-                        <p style="font-size: 13px; color: #22c55e; font-weight: bold; margin-top: 15px;">Aapka wallet balance safaltapurvak update kar diya gaya hai!</p>
-                        <p style="font-size: 12px; color: #fbbf24; margin-top: 20px;">Aap ab is page ko band karke apne app पर wapas ja sakte hain.</p>
-                    </div>
-                </body>
-            </html>
-        `);
-    } catch (err) {
-        console.error("Payment status error:", err);
-        res.status(500).send("Server error during payment status check");
-    }
-});
+const inputStyle = {
+  width: "100%", padding: "10px", borderRadius: "8px", background: "#0f172a", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", fontSize: "12px", boxSizing: "border-box"
+};

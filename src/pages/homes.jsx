@@ -7,17 +7,32 @@ export default function Home() {
 
   // Wallet Balance State
   const [walletBalance, setWalletBalance] = useState("0.00");
+  
+  // 🟢 Live Tournaments State from MongoDB Backend
+  const [liveTournaments, setLiveTournaments] = useState([]);
+  const API_URL = "https://winarena-backend-1.onrender.com";
 
   // Coming Soon Alert State
   const [showAlert, setShowAlert] = useState(false);
   const [selectedGame, setSelectedGame] = useState("");
 
-  // Load balance from localStorage
+  // Load balance and fetch live tournaments from backend
   useEffect(() => {
     const savedBalance = localStorage.getItem("walletBalance");
     if (savedBalance) {
       setWalletBalance(parseFloat(savedBalance).toFixed(2));
     }
+
+    // Fetch tournaments from MongoDB
+    fetch(`${API_URL}/api/tournaments`)
+      .then((res) => res.json())
+      .then((data) => {
+        const list = Array.isArray(data) ? data : (data.tournaments || []);
+        if (list.length > 0) {
+          setLiveTournaments(list);
+        }
+      })
+      .catch((err) => console.error("Error fetching live tournaments on home:", err));
   }, []);
 
   // Banner images array for auto scroller
@@ -47,7 +62,7 @@ export default function Home() {
     }
   };
 
-  // Game Click Handler (Free Fire, Carrom, Ludo -> Open, Baaki sab -> Coming Soon Popup)
+  // Game Click Handler (Free Fire, Carrom, Ludo -> Open, Others -> Coming Soon Popup)
   const handleGameClick = (gameName) => {
     const formatted = gameName.toLowerCase().replace(/\s+/g, "");
     if (formatted.includes("freefire")) {
@@ -55,7 +70,7 @@ export default function Home() {
     } else if (formatted.includes("carrom")) {
       handleNavigation("/carrom");
     } else if (formatted.includes("ludo")) {
-      handleNavigation("/ludo");
+      handleNavigation("/ludo"); 
     } else {
       setSelectedGame(gameName);
       setShowAlert(true);
@@ -199,19 +214,20 @@ export default function Home() {
       {/* ================= LIVE TOURNAMENTS ================= */}
       <SectionTitle title="LIVE TOURNAMENTS" live onViewAll={() => handleNavigation("/tournaments")} />
       <section style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", padding: "0 16px" }}>
-        {(
-          JSON.parse(localStorage.getItem("adminTournaments")) || [
-            { game: "FREE FIRE", mode: "SOLO", entry: "10", prize: "500", image: "/freefire.png", startTime: new Date("2026-06-07T15:00:00").getTime() },
-            { game: "CARROM", mode: "1 VS 1", entry: "20", prize: "800", image: "/carrom.png", startTime: new Date("2026-06-07T14:00:00").getTime() },
-            { game: "LUDO", mode: "2 PLAYER", entry: "10", prize: "300", image: "/ludo.png", startTime: new Date("2026-06-07T16:00:00").getTime() }
-          ]
-        )
-        .sort((a, b) => a.startTime - b.startTime)
-        .map((tournament, index) => (
-          <div key={index} onClick={() => handleNavigation("/tournaments")} style={{ displayContents: "contents" }}>
-            <Tournament game={tournament.game} mode={tournament.mode} entry={tournament.entry} prize={tournament.prize} image={tournament.image} />
-          </div>
-        ))}
+        {(liveTournaments.length > 0 ? liveTournaments : [
+          { game: "FREE FIRE", mode: "SOLO", entry: "10", prize: "500", image: "/freefire.png", startTime: Date.now() + 3600000 },
+          { game: "CARROM", mode: "1 VS 1", entry: "20", prize: "800", image: "/carrom.png", startTime: Date.now() + 7200000 },
+          { game: "LUDO", mode: "2 PLAYER", entry: "10", prize: "300", image: "/ludo.png", startTime: Date.now() + 10800000 }
+        ])
+        .slice(0, 3)
+        .map((tournament, index) => {
+          const tid = tournament._id || tournament.id || index;
+          return (
+            <div key={tid} onClick={() => handleNavigation(`/tournament/${tid}`)} style={{ displayContents: "contents" }}>
+              <Tournament game={tournament.game} mode={tournament.mode} entry={tournament.entry} prize={tournament.prize} image={tournament.image || "/freefire.png"} />
+            </div>
+          );
+        })}
       </section>
 
       {/* ================= PROMO BANNER ================= */}
